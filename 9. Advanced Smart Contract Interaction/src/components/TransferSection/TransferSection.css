@@ -1,0 +1,15 @@
+.transfers-section {
+  margin-top: 20px;
+}
+
+.transfers-section h2 {
+  margin-bottom: 10px;
+}
+
+
+.transfers-section-main {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100vw;
+  justify-content: space-around;
+}

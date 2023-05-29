@@ -1,0 +1,15 @@
+.transfer-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+}
+
+.transfer-card h3 {
+  margin-bottom: 5px;
+}
+
+.transfer-card p {
+  margin: 0;
+}
