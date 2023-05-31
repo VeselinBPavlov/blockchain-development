@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract CrowdfundingCampaign is ERC20, Ownable {
-    uint256 public _id;
     string public projectName;
     string public description;
     uint256 public fundingGoal;
@@ -17,8 +16,22 @@ contract CrowdfundingCampaign is ERC20, Ownable {
     uint256 public totalRewards;
     mapping(address => uint256) public rewardClaimed;
 
-    constructor(string memory _projectName, string memory _description, uint256 _fundingGoal, uint256 _endDate) 
-            ERC20("FundingCoin", "FCO") {
+    event CampaignCreated(address creator, address indexed campaignAddress);
+    event CampaignFunded(address funder, uint256 amount);
+    event CampaignFundingReleased(address owner, uint256 amount);
+    event CampaignFundingWithdrawn(address funder, uint256 amount);
+    event CampaignRewardDistributed(address owner, uint256 amount);
+    event CampaignRewardClaimed(address funder, uint256 amount);
+
+    constructor(string memory _tokenName, string memory _tokenSymbol, string memory _projectName, string memory _description, uint256 _fundingGoal, uint256 _endDate) 
+            ERC20(_tokenName, _tokenSymbol) {
+        require(bytes(_tokenName).length > 0, "Token name is required");
+        require(bytes(_tokenSymbol).length > 0, "Token symbol is required");
+        require(bytes(_projectName).length > 0, "Project name is required");
+        require(bytes(_description).length > 0, "Description is required");
+        require(_fundingGoal > 0, "Funding goal is required");
+        require(_endDate > block.timestamp, "End date should be in the future");
+
         projectName = _projectName;
         description = _description;
         fundingGoal = _fundingGoal;
@@ -37,6 +50,8 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         totalFunding += contribution;
 
         _mint(msg.sender, contribution);
+
+        emit CampaignFunded(msg.sender, contribution);
     }
 
     function releaseFunds() public onlyOwner {
@@ -44,6 +59,8 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         require(totalFunding >= fundingGoal, "Campaign has not reached its funding goal");
 
         payable(owner()).transfer(address(this).balance);
+
+        emit CampaignFundingReleased(owner(), address(this).balance);
     }
 
     function withdrawContribution() public {
@@ -57,13 +74,17 @@ contract CrowdfundingCampaign is ERC20, Ownable {
 
         (bool success, ) = payable(msg.sender).call{value: contribution}("");
         require(success, "Failed to withdraw contribution");
+
+        emit CampaignFundingWithdrawn(msg.sender, contribution);
     }
 
     function rewardDistribution() external payable onlyOwner {
         require(block.timestamp > endDate, "Campaign has not ended yet");
         require(totalFunding >= fundingGoal, "Campaign has not reached its funding goal");
 
-        totalRewards += msg.value;        
+        totalRewards += msg.value;     
+
+        emit CampaignRewardDistributed(owner(), msg.value); 
     }
 
     function claimReward() public {
@@ -81,6 +102,8 @@ contract CrowdfundingCampaign is ERC20, Ownable {
 
         (bool success, ) = payable(msg.sender).call{value: rewardForClaim}("");
         require(success, "Failed to claim reward");
+
+        emit CampaignRewardClaimed(msg.sender, rewardForClaim);
     }
     
     function mint(address to, uint256 amount) public {
