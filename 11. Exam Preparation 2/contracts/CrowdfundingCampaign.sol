@@ -38,6 +38,16 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         endDate = _endDate;
     }
 
+    modifier campaignNotEnded() {
+        require(block.timestamp > endDate, "Campaign has not ended yet");
+        _;
+    }
+
+    modifier campaignNotReachedGoal {
+        require(totalFunding >= fundingGoal, "Campaign has not reached its funding goal");
+        _;
+    }
+
     function contribute(uint256 amount) public {
         require(block.timestamp < endDate, "Campaign has ended");
         require(totalFunding < fundingGoal, "Campaign has reached its funding goal");
@@ -54,17 +64,13 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         emit CampaignFunded(msg.sender, contribution);
     }
 
-    function releaseFunds() public onlyOwner {
-        require(block.timestamp > endDate, "Campaign has not ended yet");
-        require(totalFunding >= fundingGoal, "Campaign has not reached its funding goal");
-
+    function releaseFunds() public onlyOwner campaignNotEnded campaignNotReachedGoal {
         payable(owner()).transfer(address(this).balance);
 
         emit CampaignFundingReleased(owner(), address(this).balance);
     }
 
-    function withdrawContribution() public {
-        require(block.timestamp > endDate, "Campaign has not ended yet");
+    function withdrawContribution() public campaignNotEnded {
         require(totalFunding < fundingGoal, "Campaign has reached its funding goal");
         require(contributions[msg.sender] > 0, "You have not contributed to this campaign");
 
@@ -78,18 +84,13 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         emit CampaignFundingWithdrawn(msg.sender, contribution);
     }
 
-    function rewardDistribution() external payable onlyOwner {
-        require(block.timestamp > endDate, "Campaign has not ended yet");
-        require(totalFunding >= fundingGoal, "Campaign has not reached its funding goal");
-
-        totalRewards += msg.value;     
+    function rewardDistribution() external payable onlyOwner campaignNotEnded campaignNotReachedGoal {
+        totalRewards += msg.value;    
 
         emit CampaignRewardDistributed(owner(), msg.value); 
     }
 
-    function claimReward() public {
-        require(block.timestamp > endDate, "Campaign has not ended yet");
-        require(totalFunding >= fundingGoal, "Campaign has not reached its funding goal");
+    function claimReward() public campaignNotEnded campaignNotReachedGoal {
         require(totalRewards > 0, "No rewards to claim");
         require(contributions[msg.sender] > 0, "You have not contributed to this campaign");
 
