@@ -48,13 +48,13 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         _;
     }
 
-    function contribute(uint256 amount) public {
+    function contribute() external payable {
         require(block.timestamp < endDate, "Campaign has ended");
         require(totalFunding < fundingGoal, "Campaign has reached its funding goal");
-        require(amount > 0, "Contribution amount should be greater than 0");
+        require(msg.value > 0, "Contribution amount should be greater than 0");
 
         uint256 remainingFunding = fundingGoal - totalFunding;
-        uint256 contribution = amount > remainingFunding ? remainingFunding : amount;
+        uint256 contribution = msg.value > remainingFunding ? remainingFunding : msg.value;
 
         contributions[msg.sender] += contribution;
         totalFunding += contribution;
@@ -65,9 +65,9 @@ contract CrowdfundingCampaign is ERC20, Ownable {
     }
 
     function releaseFunds() public onlyOwner campaignNotEnded campaignNotReachedGoal {
-        payable(owner()).transfer(address(this).balance);
-
         emit CampaignFundingReleased(owner(), address(this).balance);
+        (bool success, ) = payable(owner()).call{value: address(this).balance}("");
+        require(success, "Failed to release funds");
     }
 
     function withdrawContribution() public campaignNotEnded {
@@ -78,10 +78,10 @@ contract CrowdfundingCampaign is ERC20, Ownable {
         contributions[msg.sender] = 0;
         totalFunding -= contribution;
 
-        (bool success, ) = payable(msg.sender).call{value: contribution}("");
-        require(success, "Failed to withdraw contribution");
-
         emit CampaignFundingWithdrawn(msg.sender, contribution);
+
+        (bool success, ) = payable(msg.sender).call{value: contribution}("");
+        require(success, "Failed to withdraw contribution");        
     }
 
     function rewardDistribution() external payable onlyOwner campaignNotEnded campaignNotReachedGoal {

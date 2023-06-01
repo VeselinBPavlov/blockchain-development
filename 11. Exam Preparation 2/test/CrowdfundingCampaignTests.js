@@ -14,7 +14,7 @@ describe("CrowdfundingCampaign", function () {
     const crowdfundingPlatform = await CrowdfundingPlatformFactory.deploy();
     const _firstCampaign = crowdfundingPlatform.connect(firstOwner);
     const fundingGoal = ethers.utils.parseEther("200");
-    const tx = await _firstCampaign.createCampaign("First Campaign", "First description", fundingGoal, 1686836514);
+    const tx = await _firstCampaign.createCampaign("SqlToken", "SQL", "First Campaign", "First description", fundingGoal, 1686836514);
     console.log(tx);
     return { crowdfundingPlatform, deployer, firstOwner };
   }
@@ -23,9 +23,9 @@ describe("CrowdfundingCampaign", function () {
     it("Should require project name", async function () {
       const { crowdfundingPlatform, deployer, firstOwner } = await loadFixture(deployPlatform);
       const _firstCampaign = crowdfundingPlatform.connect(firstOwner);
-      const fundingGoal = ethers.utils.parseEther("200");
-      const tx = await _firstCampaign.createCampaign("", "First description", fundingGoal, 1686836514);
-      await expect(tx).to.be.revertedWith("Project name is required");
+
+      await expect().to.be.revertedWith("Project name is required");
+    
     });    
   });  
 });

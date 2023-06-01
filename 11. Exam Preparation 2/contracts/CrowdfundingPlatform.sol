@@ -11,15 +11,15 @@ contract CrowdfundingPlatform {
 
     event CampaignCreated(address creator, address indexed campaignAddress);
 
-    function createCampaign()  external {
-        string memory _tokenName;
-        string memory _tokenSymbol;
-        string memory _projectName;
-        string memory _description;
-        uint256 _fundingGoal;
-        uint256 _endDate;
-
-        CrowdfundingCampaign newCampaign = new CrowdfundingCampaign(_tokenName, _tokenSymbol, _projectName, _description, _fundingGoal, _endDate);
+    function createCampaign(
+        string memory tokenName,
+        string memory tokenSymbol,
+        string memory projectName,
+        string memory description,
+        uint256 fundingGoal,
+        uint256 endDate)
+        external {
+        CrowdfundingCampaign newCampaign = new CrowdfundingCampaign(tokenName, tokenSymbol, projectName, description, fundingGoal, endDate);
         _campaignId.increment();
         uint256 campaignId = _campaignId.current();
         campaigns[campaignId] = newCampaign;
